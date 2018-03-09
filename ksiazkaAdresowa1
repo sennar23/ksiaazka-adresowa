@@ -1,1 +1,521 @@
 nowaKsiazkaAdresowa
+#include <iostream>
+#include <windows.h>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <algorithm>
+
+using namespace std;
+
+string nazwaPliku = "KsiazkaAdresowa.txt";
+
+struct Kontakt
+{
+    int id = 0;
+    string imie = "", nazwisko = "", numerTelefonu = "", email = "", adres = "";
+};
+
+string konwerjsaIntNaString(int liczba);
+string zamienPierwszaLitereNaDuzaAPozostaleNaMale(string tekst);
+Kontakt pobierzDaneKontaktu(string daneKontaktuOddzieloneKreskami);
+void wczytajKontaktyZPliku(vector <Kontakt> &kontakty);
+void wyswietlWszystkieKontakty(vector <Kontakt> &kontakty);
+void dopiszKontaktuDoPliku(Kontakt ksiazka);
+void zapiszWszystkieKontaktyDoPlikuTekstowego(vector <Kontakt> &kontakty);
+void wyszukajKontaktyPoImieniu(vector <Kontakt> &kontakty);
+void wyszukajKontaktyPoNazwisku(vector <Kontakt> &kontakty);
+void dodajKontakt(vector <Kontakt> &kontakty);
+void usunKontakt(vector <Kontakt> &kontakty);
+void edytujKontakt(vector <Kontakt> &kontakty);
+void zakonczProgram();
+
+int main()
+{
+    vector <Kontakt> kontakty;
+    char wybor;
+
+    wczytajKontaktyZPliku(kontakty);
+
+    while (true)
+    {
+        system("cls");
+        cout << ">>> KSIAZKA ADRESOWA <<<" << endl << endl;
+        cout << "1. Dodaj znajomego" << endl;
+        cout << "2. Wyszukaj po imieniu" << endl;
+        cout << "3. Wyszukaj po nazwisku" << endl;
+        cout << "4. Wyswietl wszystkich znajomych" << endl;
+        cout << "5. Usun kontakt" << endl;
+        cout << "6. Edytuj kontakt" << endl;
+        cout << "9. Zakoncz program" << endl << endl;
+        cout << "Twoj wybor: ";
+        cin >> wybor;
+
+        switch(wybor)
+        {
+        case '1':
+            dodajKontakt(kontakty);
+            break;
+        case '2':
+            wyszukajKontaktyPoImieniu(kontakty);
+            break;
+        case '3':
+            wyszukajKontaktyPoNazwisku(kontakty);
+            break;
+        case '4':
+            wyswietlWszystkieKontakty(kontakty);
+            break;
+        case '5':
+            usunKontakt(kontakty);
+            break;
+        case '6':
+            edytujKontakt(kontakty);
+            break;
+        case '9':
+            zakonczProgram();
+            break;
+        }
+    }
+}
+
+string konwerjsaIntNaString(int liczba)
+{
+    ostringstream ss;
+    ss << liczba;
+    string str = ss.str();
+    return str;
+}
+
+string zamienPierwszaLitereNaDuzaAPozostaleNaMale(string tekst)
+{
+    if (!tekst.empty())
+    {
+        transform(tekst.begin(), tekst.end(), tekst.begin(), ::tolower);
+        tekst[0] = toupper(tekst[0]);
+    }
+    return tekst;
+}
+
+Kontakt pobierzDaneKontaktu(string daneKontaktuOddzieloneKreskami)
+{
+    Kontakt ksiazka;
+    string pojedynczaDanaKontaktu = "";
+    int numerPojedynczejDanejKontaktu = 1;
+
+    for (int pozycjaZnaku = 0; pozycjaZnaku < daneKontaktuOddzieloneKreskami.length(); pozycjaZnaku++)
+    {
+        if (daneKontaktuOddzieloneKreskami[pozycjaZnaku] != '|')
+        {
+            pojedynczaDanaKontaktu += daneKontaktuOddzieloneKreskami[pozycjaZnaku];
+        }
+        else
+        {
+            switch(numerPojedynczejDanejKontaktu)
+            {
+            case 1:
+                ksiazka.id = atoi(pojedynczaDanaKontaktu.c_str());
+                break;
+            case 2:
+                ksiazka.imie = pojedynczaDanaKontaktu;
+                break;
+            case 3:
+                ksiazka.nazwisko = pojedynczaDanaKontaktu;
+                break;
+            case 4:
+                ksiazka.numerTelefonu = pojedynczaDanaKontaktu;
+                break;
+            case 5:
+                ksiazka.email = pojedynczaDanaKontaktu;
+                break;
+            case 6:
+                ksiazka.adres = pojedynczaDanaKontaktu;
+                break;
+            }
+            pojedynczaDanaKontaktu = "";
+            numerPojedynczejDanejKontaktu++;
+        }
+    }
+    return ksiazka;
+}
+
+void wczytajKontaktyZPliku(vector <Kontakt> &kontakty)
+{
+    Kontakt ksiazka;
+    string daneKontaktuOddzieloneKreskami = "";
+
+    fstream plikTekstowy;
+    plikTekstowy.open(nazwaPliku.c_str(), ios::in);
+
+    if (plikTekstowy.good() == true)
+    {
+        while (getline(plikTekstowy, daneKontaktuOddzieloneKreskami))
+        {
+            ksiazka = pobierzDaneKontaktu(daneKontaktuOddzieloneKreskami);
+
+            kontakty.push_back(ksiazka);
+        }
+        plikTekstowy.close();
+    }
+}
+void wyswietlWszystkieKontakty(vector <Kontakt> &kontakty)
+{
+    system("cls");
+    if (!kontakty.empty())
+    {
+        for (vector <Kontakt> :: iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+        {
+            cout << "Id:                 " << itr -> id << endl;
+            cout << "Imie:               " << itr -> imie << endl;
+            cout << "Nazwisko:           " << itr -> nazwisko << endl;
+            cout << "Numer telefonu:     " << itr -> numerTelefonu << endl;
+            cout << "Email:              " << itr -> email << endl;
+            cout << "Adres:              " << itr -> adres << endl << endl;
+        }
+        cout << endl;
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta." << endl << endl;
+    }
+
+    system("pause");
+}
+void dopiszKontaktuDoPliku(Kontakt ksiazka)
+{
+    fstream plikTekstowy;
+    plikTekstowy.open(nazwaPliku.c_str(), ios::out | ios::app);
+
+    if (plikTekstowy.good() == true)
+    {
+        plikTekstowy << ksiazka.id << '|';
+        plikTekstowy << ksiazka.imie << '|';
+        plikTekstowy << ksiazka.nazwisko << '|';
+        plikTekstowy << ksiazka.numerTelefonu << '|';
+        plikTekstowy << ksiazka.email << '|';
+        plikTekstowy << ksiazka.adres << '|' << endl;
+        plikTekstowy.close();
+
+        cout << endl << "Kontakt zostal dodany" << endl;
+        system("pause");
+    }
+    else
+    {
+        cout << "Nie udalo sie otworzyc pliku i zapisac w nim danych." << endl;
+        system("pause");
+    }
+}
+void zapiszWszystkieKontaktyDoPlikuTekstowego(vector <Kontakt> &kontakty)
+{
+    fstream plikTekstowy;
+    string liniaZDanymiKontaktu = "";
+
+    plikTekstowy.open(nazwaPliku.c_str(), ios::out);
+    if (plikTekstowy.good())
+    {
+        for (vector <Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+        {
+            liniaZDanymiKontaktu += konwerjsaIntNaString(itr -> id) + '|';
+            liniaZDanymiKontaktu += itr -> imie + '|';
+            liniaZDanymiKontaktu += itr -> nazwisko + '|';
+            liniaZDanymiKontaktu += itr -> numerTelefonu + '|';
+            liniaZDanymiKontaktu += itr -> email + '|';
+            liniaZDanymiKontaktu += itr -> adres + '|';
+
+            plikTekstowy << liniaZDanymiKontaktu << endl;
+            liniaZDanymiKontaktu = "";
+        }
+        plikTekstowy.close();
+    }
+    else
+    {
+        cout << "Nie mozna otworzyc pliku KsiazkaAdresowa.txt" << endl;
+    }
+}
+void wyszukajKontaktyPoImieniu(vector <Kontakt> &kontakty)
+{
+    string imiePoszukiwanegoKontaktu = "";
+    int iloscAdresatow = 0;
+
+    system("cls");
+    if (!kontakty.empty())
+    {
+        cout << ">>> WYSZUKIWANIE KONTAKTOW O IMIENIU <<<" << endl << endl;
+
+        cout << "Wyszukaj znajomych o imieniu: ";
+        cin >> imiePoszukiwanegoKontaktu;
+        imiePoszukiwanegoKontaktu = zamienPierwszaLitereNaDuzaAPozostaleNaMale(imiePoszukiwanegoKontaktu);
+
+        for (vector <Kontakt>::iterator  itr = kontakty.begin(); itr != kontakty.end(); itr++)
+        {
+            if (itr -> imie == imiePoszukiwanegoKontaktu)
+            {
+                cout << endl;
+                cout << "Id:                 " << itr -> id << endl;
+                cout << "Imie:               " << itr -> imie << endl;
+                cout << "Nazwisko:           " << itr -> nazwisko << endl;
+                cout << "Numer Telefonu:     " << itr -> numerTelefonu << endl;
+                cout << "Nr Email:           " << itr -> email << endl;
+                cout << "Adres:              " << itr -> adres << endl;
+                iloscAdresatow++;
+            }
+        }
+        if (iloscAdresatow == 0)
+        {
+            cout << endl << "Nie ma znajomych z tym imieniem w ksiazce adresowej" << endl;
+        }
+        else
+        {
+            cout << endl << "Ilosc znajomych z imieniem: >>> " << imiePoszukiwanegoKontaktu << " <<<";
+            cout << " w ksiazce adresowej wynosi: " << iloscAdresatow << endl << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta" << endl << endl;
+    }
+    cout << endl;
+    system("pause");
+}
+
+void wyszukajKontaktyPoNazwisku(vector <Kontakt> &kontakty)
+{
+    string nazwiskoPoszukiwanegoKontaktu;
+    int iloscAdresatow = 0;
+
+    system("cls");
+    if (!kontakty.empty())
+    {
+        cout << ">>> WYSZUKIWANIE KONTAKTOW O NAZWISKU <<<" << endl << endl;
+
+        cout << "Wyszukaj znajomych o nazwisku: ";
+        cin >> nazwiskoPoszukiwanegoKontaktu;
+        nazwiskoPoszukiwanegoKontaktu = zamienPierwszaLitereNaDuzaAPozostaleNaMale(nazwiskoPoszukiwanegoKontaktu);
+
+        for (vector <Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+        {
+            if (itr -> nazwisko == nazwiskoPoszukiwanegoKontaktu)
+            {
+                cout << endl;
+                cout << "Id:                 " << itr -> id << endl;
+                cout << "Imie:               " << itr -> imie << endl;
+                cout << "Nazwisko:           " << itr -> nazwisko << endl;
+                cout << "Numer Telefonu:     " << itr -> numerTelefonu << endl;
+                cout << "Nr Email:           " << itr -> email << endl;
+                cout << "Adres:              " << itr -> adres << endl;
+                iloscAdresatow++;
+            }
+        }
+        if (iloscAdresatow == 0)
+        {
+            cout << endl << "Nie ma kontaktow z tym imieniem w ksiazce adresowej" << endl;
+        }
+        else
+        {
+            cout << endl << "Ilosc znajomych z nazwiskiem: >>> " << nazwiskoPoszukiwanegoKontaktu << " <<<";
+            cout << " w ksiazce adresowej wynosi: " << iloscAdresatow << endl << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta" << endl << endl;
+    }
+    cout << endl;
+    system("pause");
+}
+void dodajKontakt(vector <Kontakt> &kontakty)
+{
+    Kontakt ksiazka;
+
+    system("cls");
+    cout << ">>> DODAWANIE NOWEGO KOKNTAKTU <<<" << endl << endl;
+
+    if (kontakty.empty() == true)
+    {
+        ksiazka.id = 1;
+    }
+    else
+    {
+        ksiazka.id = kontakty.back().id + 1;
+    }
+
+    cout << "Podaj imie: ";
+    cin >> ksiazka.imie;
+    ksiazka.imie = zamienPierwszaLitereNaDuzaAPozostaleNaMale(ksiazka.imie);
+
+    cout << "Podaj nazwisko: ";
+    cin >> ksiazka.nazwisko;
+    ksiazka.nazwisko = zamienPierwszaLitereNaDuzaAPozostaleNaMale(ksiazka.nazwisko);
+
+    cout << "Podaj numer telefonu: ";
+    cin.sync();
+    getline(cin, ksiazka.numerTelefonu);
+
+    cout << "Podaj email: ";
+    cin >> ksiazka.email;
+
+    cout << "Podaj adres: ";
+    cin.sync();
+    getline(cin, ksiazka.adres);
+
+    kontakty.push_back(ksiazka);
+
+    dopiszKontaktuDoPliku(ksiazka);
+}
+void usunKontakt(vector<Kontakt> &kontakty)
+{
+    int idUsuwanegoKontaktu=0;
+    char znak;
+    bool czyIstniejeKontakt=false;
+
+    system("cls");
+    if(!kontakty.empty())
+    {
+        cout<<" >> Usuwanie wybranej osoby ! "<<endl<<endl;
+        cout << "Podaj numer ID kontaktu ktorego chcesz USUNAC: ";
+        cin >> idUsuwanegoKontaktu;
+
+        if(cin.fail())
+        {
+            cout << endl << "Wprowadzono niepoprawne dane. Powrot do menu glownego" << endl;
+            cin.clear();
+            cin.sync();
+        }
+            else
+            {
+                for(vector <Kontakt>::iterator itr=kontakty.begin(); itr!=kontakty.end(); itr++)
+                {
+                    if(itr->id=idUsuwanegoKontaktu)
+                    {
+                        czyIstniejeKontakt=true;
+                        cout << endl << endl << "Potwierdz naciskajac klawisz 't': ";
+                        cin>>znak;
+                        if(znak=='t')
+                        {
+                            itr=kontakty.erase(itr);
+                            cout << endl << endl << "Szukany kontakt zostal USUNIETY" << endl << endl;
+                            zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                            break;
+
+                        }
+                        else
+                        {
+                            cout << endl << endl << "Wybrany kontakt NIE zostal usuniety" << endl << endl;
+                            break;
+                        }
+                    }
+                    if (czyIstniejeKontakt == false)
+                    {
+                        cout << endl << "Nie ma takiego kontaktu w ksiazce adresowej" << endl << endl;
+                    }
+                }
+            }
+    }
+            else
+            {
+                cout << "Ksiazka adresowa jest pusta" << endl << endl;
+            }
+            system("pause");
+        }
+
+
+
+void edytujKontakt(vector <Kontakt> &kontakty)
+{
+    int idWybranegoKontaktu = 0;
+    char wybor;
+    bool czyIstniejeAdresat = false;
+
+    system("cls");
+    if (!kontakty.empty())
+    {
+        cout << ">>> EDYCJA WYBRANEGO KONTAKTU <<<" << endl << endl;
+        cout << "Podaj numer ID kontaktu u ktorego chcesz zmienic dane: ";
+        cin >> idWybranegoKontaktu;
+
+        if (cin.fail())
+        {
+            cout << endl << "Wprowadzono niepoprawne dane. Powrot do menu glownego" << endl << endl;
+            cin.clear();
+            cin.sync();
+        }
+        else
+        {
+            for (vector <Kontakt>::iterator itr = kontakty.begin(); itr != kontakty.end(); itr++)
+            {
+                if (itr -> id == idWybranegoKontaktu)
+                {
+                    czyIstniejeAdresat = true;
+
+                    cout << endl << "Ktore dane zaktualizowac: " << endl;
+                    cout << "1 - Imie" << endl;
+                    cout << "2 - Nazwisko" << endl;
+                    cout << "3 - Numer telefonu" << endl;
+                    cout << "4 - Email" << endl;
+                    cout << "5 - Adres" << endl;
+                    cout << "6 - Powrot " << endl;
+                    cout << endl << "Wybierz 1-6: ";
+                    cin >> wybor;
+
+                    switch (wybor)
+                    {
+                    case '1':
+                        cout << "Podaj nowe imie: ";
+                        cin >> itr -> imie;
+                        itr -> imie = zamienPierwszaLitereNaDuzaAPozostaleNaMale(itr -> imie);
+                        cout << endl << "Imie zostalo zmienione" << endl << endl;
+                        zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                        break;
+                    case '2':
+                        cout << "Podaj nowe nazwisko: ";
+                        cin >> itr -> nazwisko;
+                        itr -> nazwisko = zamienPierwszaLitereNaDuzaAPozostaleNaMale(itr -> nazwisko);
+                        cout << endl << "Nazwisko zostalo zmienione" << endl << endl;
+                        zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                        break;
+                    case '3':
+                        cout << "Podaj nowy numer telefonu: ";
+                        cin >> itr -> numerTelefonu;
+                        cout << endl << "Numer telefonu zostal zmieniony" << endl << endl;
+                        zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                        break;
+                    case '4':
+                        cout << "Podaj nowy email: ";
+                        cin >> itr -> email;
+                        cout << endl << "Email zostal zmieniony" << endl << endl;
+                        zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                        break;
+                    case '5':
+                        cout << "Podaj nowy adres zamieszkania: ";
+                        cin >> itr -> adres;
+                        itr -> adres = zamienPierwszaLitereNaDuzaAPozostaleNaMale(itr -> adres);
+                        cout << endl << "Adres zostal zmieniony" << endl << endl;
+                        zapiszWszystkieKontaktyDoPlikuTekstowego(kontakty);
+                        break;
+
+                    case '6':
+                        cout << endl << "Powrot do menu glownego" << endl << endl;
+                        break;
+                    default:
+                        cout << endl << "Nie ma takiej opcji w menu! Powrot do menu glownego." << endl << endl;
+                        break;
+                    }
+                }
+            }
+            if (czyIstniejeAdresat == false)
+            {
+                cout << endl << "Nie ma takiego kontaktu w ksiazce adresowej." << endl << endl;
+            }
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta." << endl << endl;
+    }
+    system("pause");
+}
+void zakonczProgram()
+{
+    cout << endl << "Koniec programu." << endl;
+    exit(0);
+}
+
