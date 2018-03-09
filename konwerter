@@ -1,0 +1,124 @@
+#include <iostream>
+#include <windows.h>
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+struct Kontakt
+{
+    int id = 0;
+    string imie = "", nazwisko = "", numerTelefonu = "", email = "", adres = "";
+};
+
+int wczytajKontaktyZPliku (vector <Kontakt> &kontakty, int iloscKontaktow, string nazwaPliku);
+void zapisDanychDoPliku (vector <Kontakt> &kontakty, int iloscKontaktow, string nazwaPliku);
+
+int main()
+{
+    string nazwaZrodlowegoPlikuTekstowego;
+    string nazwaZrodlowegoPlikuTekstowegoZRozszerzeniem;
+    vector <Kontakt> kontakty;
+    int iloscKontaktow = 0;
+
+    cout << "Program sluzy do konwersji pliku tekstowego." << endl << endl;
+    cout << "Podaj nazwe zrodlowego pliku tekstowego: ";
+    cin >> nazwaZrodlowegoPlikuTekstowego; // KsiazkaAdresowa
+    nazwaZrodlowegoPlikuTekstowegoZRozszerzeniem = nazwaZrodlowegoPlikuTekstowego +".txt";
+
+    iloscKontaktow = wczytajKontaktyZPliku (kontakty,iloscKontaktow,nazwaZrodlowegoPlikuTekstowegoZRozszerzeniem);
+    zapisDanychDoPliku(kontakty, iloscKontaktow, nazwaZrodlowegoPlikuTekstowego);
+
+    return 0;
+}
+
+int wczytajKontaktyZPliku (vector <Kontakt> &kontakty, int iloscKontaktow, string nazwaPliku)
+{
+    string linia;
+    int numerLinii = 1;
+    fstream plik;
+    Kontakt pusty;
+
+    plik.open(nazwaPliku.c_str(), ios::in); // aby otworzyc plik do odczytu
+
+    if (plik.good() == false) // funkcja sprawdzajaca czy plik istnieje (zwraca true jesli istnieje)
+    {
+        cout<<"Nie udalo sie otworzyc pliku!";
+        exit(0);
+    }
+
+    if (plik.good() == true)
+    {
+        while (getline(plik,linia))
+        {
+            kontakty.push_back(pusty);
+            switch (numerLinii)
+            {
+            case 1:
+                kontakty[iloscKontaktow].id = atoi(linia.c_str());
+                break;
+            case 2:
+                kontakty[iloscKontaktow].imie = linia;
+                break;
+            case 3:
+                kontakty[iloscKontaktow].nazwisko = linia;
+                break;
+            case 4:
+                kontakty[iloscKontaktow].numerTelefonu = linia;
+                break;
+            case 5:
+                kontakty[iloscKontaktow].email = linia;
+                break;
+            case 6:
+                kontakty[iloscKontaktow].adres = linia;
+                break;
+            }
+
+            if (numerLinii >= 6)
+            {
+                numerLinii = 1;
+                iloscKontaktow++;
+            }
+            else
+            {
+                numerLinii++;
+            }
+        }
+        plik.close();
+    }
+    return iloscKontaktow;
+}
+
+void zapisDanychDoPliku (vector <Kontakt> &kontakty, int iloscKontaktow, string nazwaPliku)
+{
+    string nowaNazwaPlikuZRozszerzeniem;
+    fstream plik;
+
+    nowaNazwaPlikuZRozszerzeniem = nazwaPliku + "_nowy_format.txt";
+
+    plik.open(nowaNazwaPlikuZRozszerzeniem.c_str(), ios::out);
+
+    if (plik.good() == true)
+    {
+        for (int i = 0; i < iloscKontaktow; i++)
+        {
+            kontakty[i].id = i + 1;
+            plik << kontakty[i].id << "|";
+            plik << kontakty[i].imie << "|";
+            plik << kontakty[i].nazwisko << "|";
+            plik << kontakty[i].numerTelefonu << "|";
+            plik << kontakty[i].email << "|";
+            plik << kontakty[i].adres << "|";
+            plik << endl;
+        }
+        plik.close();
+        cout << endl << "Dane zostaly zapisne. Utworzono nowy plik o nazwie: " << nowaNazwaPlikuZRozszerzeniem << endl;
+    }
+    else
+    {
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
+    }
+}
